@@ -103,6 +103,12 @@ cd ../.. && cargo run -p upload-fastfs -- \
 | `DKIM_PRIVATE_KEY` | No | RSA PEM for DKIM signing |
 | `DKIM_SELECTOR` | No | DKIM selector (default: `mail`) |
 | `EMAIL_SIGNATURE` | No | Signature for outgoing emails |
+| `SMTP_PROBE_ADDR` | No | Address `/health/deep` dials to verify the SMTP listener (default: `127.0.0.1:25`) |
+
+**Health endpoints:** `/health` returns a constant `ok` and must NOT be used for alerting — it stays
+green while PostgreSQL is down. `/health/deep` is the readiness probe: it runs `SELECT 1`, dials the
+SMTP listener for its `220` greeting, and answers 503 with a per-check reason when either fails. It
+is polled by the OutLayer monitoring collector, which pages PagerDuty after 3 consecutive failures.
 
 ### Web UI
 | Variable | Default | Description |

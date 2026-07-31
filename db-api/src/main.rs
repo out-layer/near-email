@@ -105,6 +105,9 @@ struct AppState {
     /// When set, emails to @near.email are encrypted and stored directly
     /// bypassing external SMTP relay
     master_public_key: Option<secp256k1::PublicKey>,
+    /// Address `/health/deep` dials to confirm the SMTP server still accepts mail.
+    /// db-api runs with `network_mode: host`, so the published port 25 is on loopback.
+    smtp_probe_addr: String,
 }
 
 #[tokio::main]
@@ -267,7 +270,11 @@ async fn main() -> anyhow::Result<()> {
         }
     };
 
-    let state = AppState { db, email_domain, account_suffix, resolver, dkim, email_signature, smtp_relay, api_secret, fastnear_api_url, near_rpc_url, invite_rate_limiter, poll_secret, send_invite_success_email, master_public_key };
+    // Where /health/deep dials to prove the SMTP listener is still accepting mail.
+    let smtp_probe_addr = env::var("SMTP_PROBE_ADDR").unwrap_or_else(|_| "127.0.0.1:25".to_string());
+    info!("Deep health check will probe SMTP listener at {}", smtp_probe_addr);
+
+    let state = AppState { db, email_domain, account_suffix, resolver, dkim, email_signature, smtp_relay, api_secret, fastnear_api_url, near_rpc_url, invite_rate_limiter, poll_secret, send_invite_success_email, master_public_key, smtp_probe_addr };
 
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -302,6 +309,9 @@ async fn main() -> anyhow::Result<()> {
     // Public routes (no auth needed)
     let public_routes = Router::new()
         .route("/health", get(health))
+        // Readiness for external monitoring: unlike /health, this actually exercises
+        // PostgreSQL and the SMTP listener instead of returning a constant.
+        .route("/health/deep", get(health_deep))
         // Poll endpoint for lightweight email count checking (uses poll token for auth)
         .route("/poll/count", get(poll_count))
         // Invite routes (public - called by frontend, have their own protection logic)
@@ -713,6 +723,138 @@ mod base64_serde {
 
 async fn health() -> &'static str {
     "ok"
+}
+
+/// Outcome of one dependency check inside `/health/deep`.
+#[derive(Serialize)]
+struct DeepCheck {
+    status: &'static str,
+    latency_ms: i64,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
+}
+
+impl DeepCheck {
+    fn ok(latency_ms: i64) -> Self {
+        Self { status: "ok", latency_ms, error: None }
+    }
+
+    /// The endpoint is unauthenticated, so the reason is capped: enough for an on-call page to say
+    /// which dependency broke, short enough that a pathological driver error cannot dump internals.
+    fn failed(latency_ms: i64, error: String) -> Self {
+        let error = error.chars().take(200).collect();
+        Self { status: "error", latency_ms, error: Some(error) }
+    }
+
+    fn is_ok(&self) -> bool {
+        self.status == "ok"
+    }
+}
+
+#[derive(Serialize)]
+struct DeepChecks {
+    database: DeepCheck,
+    smtp_listener: DeepCheck,
+}
+
+#[derive(Serialize)]
+struct DeepHealth {
+    status: &'static str,
+    checks: DeepChecks,
+    /// Age of the most recently received email. Deliberately NOT part of `status`:
+    /// inbound volume is bursty, so this is a dashboard signal, not a paging one.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    last_email_received_secs_ago: Option<i64>,
+}
+
+/// Readiness probe for external monitoring.
+///
+/// `/health` returns a constant and therefore stays green while PostgreSQL is down — useless as an
+/// alerting signal. This endpoint exercises the two dependencies that actually define "near.email
+/// works": the database, and the SMTP listener that accepts inbound mail. Returns 503 when either
+/// is broken, so a monitor keys on the status code and reads `checks` for the reason.
+async fn health_deep(State(state): State<Arc<AppState>>) -> (StatusCode, Json<DeepHealth>) {
+    let database = check_database(&state.db).await;
+    let smtp_listener = check_smtp_listener(&state.smtp_probe_addr).await;
+    let last_email_received_secs_ago = newest_email_age_secs(&state.db).await;
+
+    let healthy = database.is_ok() && smtp_listener.is_ok();
+    if !healthy {
+        warn!(
+            "Deep health check FAILED: database={} smtp_listener={}",
+            database.error.as_deref().unwrap_or("ok"),
+            smtp_listener.error.as_deref().unwrap_or("ok"),
+        );
+    }
+
+    let code = if healthy { StatusCode::OK } else { StatusCode::SERVICE_UNAVAILABLE };
+    (
+        code,
+        Json(DeepHealth {
+            status: if healthy { "ok" } else { "unhealthy" },
+            checks: DeepChecks { database, smtp_listener },
+            last_email_received_secs_ago,
+        }),
+    )
+}
+
+async fn check_database(db: &PgPool) -> DeepCheck {
+    let started = std::time::Instant::now();
+    let result = sqlx::query("SELECT 1").execute(db).await;
+    let latency_ms = started.elapsed().as_millis() as i64;
+    match result {
+        Ok(_) => DeepCheck::ok(latency_ms),
+        Err(e) => DeepCheck::failed(latency_ms, e.to_string()),
+    }
+}
+
+/// Dial the SMTP server and require a `220` greeting. A listening socket alone is not proof of
+/// health — the process can accept connections while being wedged — so we wait for the banner it
+/// only sends once it is ready to take mail, then close politely with QUIT to keep its log clean.
+async fn check_smtp_listener(addr: &str) -> DeepCheck {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    let started = std::time::Instant::now();
+
+    let probe = async {
+        let mut stream = tokio::net::TcpStream::connect(addr)
+            .await
+            .map_err(|e| format!("connect to {} failed: {}", addr, e))?;
+
+        let mut buf = [0u8; 256];
+        let read = stream
+            .read(&mut buf)
+            .await
+            .map_err(|e| format!("reading greeting failed: {}", e))?;
+
+        let banner = String::from_utf8_lossy(&buf[..read]).trim().to_string();
+        let _ = stream.write_all(b"QUIT\r\n").await;
+
+        if banner.starts_with("220") {
+            Ok(())
+        } else {
+            Err(format!("unexpected greeting: {:?}", banner))
+        }
+    };
+
+    let outcome = tokio::time::timeout(std::time::Duration::from_secs(5), probe).await;
+    let latency_ms = started.elapsed().as_millis() as i64;
+
+    match outcome {
+        Ok(Ok(())) => DeepCheck::ok(latency_ms),
+        Ok(Err(e)) => DeepCheck::failed(latency_ms, e),
+        Err(_) => DeepCheck::failed(latency_ms, format!("timed out after 5s dialing {}", addr)),
+    }
+}
+
+/// Seconds since the newest inbound email. `None` when the mailbox is empty or the query fails —
+/// the database verdict is owned by `check_database`, so this must never turn the probe red.
+async fn newest_email_age_secs(db: &PgPool) -> Option<i64> {
+    let row: (Option<DateTime<Utc>>,) = sqlx::query_as("SELECT MAX(received_at) FROM emails")
+        .fetch_one(db)
+        .await
+        .ok()?;
+    Some((Utc::now() - row.0?).num_seconds())
 }
 
 async fn get_emails(

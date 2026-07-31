@@ -76,6 +76,9 @@ services:
       POLL_SECRET: ${POLL_SECRET:-}
       # Send notification email to inviter when their invite is accepted
       SEND_INVITE_SUCCESS_EMAIL: ${SEND_INVITE_SUCCESS_EMAIL:-true}
+      # Address /health/deep dials to prove the SMTP listener still accepts mail.
+      # db-api uses the host network, so smtp-server's published port 25 is on loopback.
+      SMTP_PROBE_ADDR: ${SMTP_PROBE_ADDR:-127.0.0.1:25}
     depends_on:
       postgres:
         condition: service_healthy
