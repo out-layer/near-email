@@ -4,6 +4,7 @@ services:
   # PostgreSQL database
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: near_email
       POSTGRES_USER: near_email
@@ -11,7 +12,9 @@ services:
     volumes:
       - postgres_data_testnet:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      # Bind to loopback only: db-api reaches it via host network,
+      # smtp-server via the compose network. Never expose to the internet.
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U near_email"]
       interval: 5s
@@ -23,6 +26,7 @@ services:
     build:
       context: ./smtp-server
       dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
       DATABASE_URL: postgres://near_email:${POSTGRES_PASSWORD}@postgres:5432/near_email
       MASTER_PUBLIC_KEY: ${MASTER_PUBLIC_KEY}
@@ -45,6 +49,7 @@ services:
     build:
       context: ./db-api
       dockerfile: Dockerfile
+    restart: unless-stopped
     network_mode: host
     environment:
       DATABASE_URL: postgres://near_email:${POSTGRES_PASSWORD}@localhost:5432/near_email
@@ -77,6 +82,7 @@ services:
 
   # Web UI
   web-ui:
+    restart: unless-stopped
     build:
       context: ./web-ui
       dockerfile: Dockerfile
@@ -89,7 +95,8 @@ services:
         NEXT_PUBLIC_SECRETS_ACCOUNT_ID: ${NEXT_PUBLIC_SECRETS_ACCOUNT_ID:-zavodil.near}
         NEXT_PUBLIC_USE_SECRETS: ${NEXT_PUBLIC_USE_SECRETS:-true}
     ports:
-      - "3000:3000"
+      # Bind to loopback only: nginx terminates TLS and proxies to localhost:3000.
+      - "127.0.0.1:3000:3000"
 
 volumes:
   postgres_data_testnet:
