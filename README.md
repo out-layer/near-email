@@ -216,3 +216,13 @@ See [DEPLOY.md](DEPLOY.md) for full deployment guide including:
 - SSL certificates
 - OutLayer secrets
 - Monitoring and backups
+
+## License
+
+Apache-2.0 — see `LICENSE` and `NOTICE`.
+
+Unlike the examples in `wasi-examples/`, which are dual MIT OR Apache-2.0 so they can be copied
+into a proprietary product without an attribution burden, NEAR Email is a finished product and
+carries the same licence as the OutLayer platform itself. The reason is Apache-2.0 §3: an express
+patent grant with defensive termination, which matters more here than elsewhere because this
+codebase implements key derivation and message encryption.

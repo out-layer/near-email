@@ -79,7 +79,7 @@ dig A mail.near.email
 
 ```bash
 cd /opt
-git clone https://github.com/zavodil/near-email.git
+git clone https://github.com/out-layer/near-email.git
 cd near-email
 ```
 
@@ -141,18 +141,36 @@ Output: `target/wasm32-wasip2/release/wasi-near-email-ark.wasm`
 
 ### 5.1 Create Project in OutLayer
 
+The WASI module lives in the `wasi-near-email-ark/` subdirectory, and `CodeSource::GitHub`
+has no notion of a subdirectory — it builds a repository root. So the module is built locally
+(Step 4) and the resulting wasm is registered as a project version by URL and hash:
+
 ```bash
-# Via CLI or dashboard
+# Project name only — the contract prefixes it with your account:
+#   create_project("near-email") as you.near  ->  you.near/near-email
 near call outlayer.near create_project '{
-  "project_id": "near-email",
-  "code_source": {
-    "repo": "https://github.com/your-org/near-email",
-    "commit": "main",
-    "path": "wasi-near-email-ark",
+  "name": "near-email",
+  "source": { "WasmUrl": {
+    "url": "https://<host>/wasi-near-email-ark.wasm",
+    "hash": "<sha256 of the wasm, hex>",
     "build_target": "wasm32-wasip2"
-  }
+  }}
 }' --accountId your.near --deposit 1
 ```
+
+Later versions go through `add_version` with the same `source` shape:
+
+```bash
+near call outlayer.near add_version '{
+  "project_name": "near-email",
+  "source": { "WasmUrl": { "url": "...", "hash": "...", "build_target": "wasm32-wasip2" } },
+  "set_active": true
+}' --accountId your.near --deposit 1
+```
+
+The dashboard does both for you, including the upload. Consumers then reference
+`{"Project": {"project_id": "your.near/near-email"}}` and always get the active version, which
+is why nothing downstream has to change when the module is rebuilt.
 
 ### 5.2 Add Secrets
 

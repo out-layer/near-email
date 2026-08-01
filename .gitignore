@@ -1,3 +1,17 @@
 web-ui/.next
 .env.local
 .*.md
+
+# Lock files ARE committed, overriding the global ignore rule.
+#
+# The wasi module's lock matters most: OutLayer compiles it inside the enclave and attests the
+# hash of the resulting wasm, so an unpinned dependency graph means the same source can compile
+# to a different binary. It also keeps the build working at all — the worker's compiler image is
+# Rust 1.85, and an unpinned resolve pulls icu/idna versions that require 1.86.
+#
+# The service locks matter for the same reason any deployed binary's do: a rebuild on the host
+# should produce what was tested, not whatever crates.io published since.
+!Cargo.lock
+!wasi-near-email-ark/Cargo.lock
+!db-api/Cargo.lock
+!smtp-server/Cargo.lock

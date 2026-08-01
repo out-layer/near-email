@@ -1176,7 +1176,7 @@ export default function Home({ accounts, loading }: HomeProps) {
                 {/* External links */}
                 <div className="border-b border-gray-100">
                   <a
-                    href="https://github.com/zavodil/near-email"
+                    href="https://github.com/out-layer/near-email"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"

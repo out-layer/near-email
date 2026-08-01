@@ -836,7 +836,7 @@ export default function DevPage() {
                 <p className="text-gray-600 text-sm">Full API reference and guides</p>
               </a>
               <a
-                href="https://github.com/nicetycoon/near-email"
+                href="https://github.com/out-layer/near-email"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
