@@ -18,7 +18,7 @@ Two ways to access NEAR Email:
 ### Option A: HTTPS API (Payment Key)
 
 ```
-POST https://api.outlayer.fastnear.com/call/{contract}/{project}
+POST https://api.outlayer.ai/call/{contract}/{project}
 ```
 
 | Contract | Project ID |

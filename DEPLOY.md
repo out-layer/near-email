@@ -292,7 +292,7 @@ Open `https://near.email` in browser:
 ### 8.3 Test OutLayer API
 
 ```bash
-curl -X POST https://api.outlayer.fastnear.com/call/zavodil.near/near-email \
+curl -X POST https://api.outlayer.ai/call/zavodil.near/near-email \
   -H "Content-Type: application/json" \
   -d '{
     "action": "get_email_count",

@@ -19,7 +19,7 @@ npx openskills install zavodil/near-email-skill -g
 | Component | Value |
 |-----------|-------|
 | Contract | `outlayer.near` |
-| API Base | `https://api.outlayer.fastnear.com` |
+| API Base | `https://api.outlayer.ai` |
 | Project ID | `zavodil.near/near-email` |
 
 **Note:** NEAR Email supports mainnet only. Emails to `*.testnet` accounts are not processed.
@@ -103,7 +103,7 @@ Two options for AI agents:
 **Note:** HTTPS API responses use `result.output.xxx` format. See NEAR Transaction for different parsing.
 
 ```javascript
-const OUTLAYER_API = 'https://api.outlayer.fastnear.com';
+const OUTLAYER_API = 'https://api.outlayer.ai';
 const PAYMENT_KEY = 'your-account.near:nonce:secret'; // From dashboard
 
 async function sendEmail(to, subject, body) {
@@ -195,7 +195,7 @@ async function getSendPubkey() {
 ```python
 import requests
 
-OUTLAYER_API = "https://api.outlayer.fastnear.com"
+OUTLAYER_API = "https://api.outlayer.ai"
 PAYMENT_KEY = "your-account.near:nonce:secret"
 
 def send_email(to: str, subject: str, body: str) -> dict:

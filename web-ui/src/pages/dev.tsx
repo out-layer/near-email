@@ -91,7 +91,7 @@ impl NftMarketplace {
 import { sha256 } from '@noble/hashes/sha256';
 import { chacha20poly1305 } from '@noble/ciphers/chacha';
 
-const OUTLAYER_API = 'https://api.outlayer.fastnear.com';
+const OUTLAYER_API = 'https://api.outlayer.ai';
 const PROJECT_ID = 'zavodil.near/near-email';
 const PAYMENT_KEY = 'your-account.near:nonce:secret'; // From dashboard
 
@@ -249,7 +249,7 @@ import requests
 from coincurve import PrivateKey, PublicKey
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 
-OUTLAYER_API = "https://api.outlayer.fastnear.com"
+OUTLAYER_API = "https://api.outlayer.ai"
 PROJECT_ID = "zavodil.near/near-email"
 PAYMENT_KEY = os.environ.get("OUTLAYER_PAYMENT_KEY", "your-account.near:nonce:secret")
 

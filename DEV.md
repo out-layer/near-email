@@ -216,7 +216,7 @@ Pre-fund a payment key and make simple HTTPS calls. Best for server-side agents.
 **JavaScript Example:**
 
 ```typescript
-const OUTLAYER_API = 'https://api.outlayer.fastnear.com';
+const OUTLAYER_API = 'https://api.outlayer.ai';
 const PROJECT_ID = 'zavodil.near/near-email';
 const PAYMENT_KEY = 'your-account.near:nonce:secret'; // From dashboard
 
@@ -273,7 +273,7 @@ For encrypted email flow (reading emails), see the Python example below which in
 import os
 import requests
 
-OUTLAYER_API = "https://api.outlayer.fastnear.com"
+OUTLAYER_API = "https://api.outlayer.ai"
 PROJECT_ID = "zavodil.near/near-email"
 PAYMENT_KEY = os.environ.get("OUTLAYER_PAYMENT_KEY", "your-account.near:nonce:secret")
 
@@ -625,7 +625,7 @@ NEAR Email currently supports **mainnet only**. Emails to `*.testnet` accounts a
 
 | Network | OutLayer Contract | API Base |
 |---------|-------------------|----------|
-| Mainnet | `outlayer.near` | `https://api.outlayer.fastnear.com` |
+| Mainnet | `outlayer.near` | `https://api.outlayer.ai` |
 
 ---
 

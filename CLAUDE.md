@@ -157,7 +157,7 @@ echo "Test body" | mail -s "Test" alice@near.email
 
 # Check WASI module (mainnet only — near-email is not deployed on testnet
 # because email addresses are based on mainnet .near accounts)
-curl -X POST https://api.outlayer.fastnear.com/call/zavodil.near/near-email \
+curl -X POST https://api.outlayer.ai/call/zavodil.near/near-email \
   -H "X-Payment-Key: owner:1:secret" \
   -H "Content-Type: application/json" \
   -d '{"action": "get_emails"}'
