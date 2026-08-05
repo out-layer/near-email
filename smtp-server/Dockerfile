@@ -1,8 +1,12 @@
-FROM rust:1.85-bookworm AS builder
+# Was pinned to 1.85 with a `cargo update home --precise 0.5.9` workaround, which existed only to
+# hold a dependency back to something 1.85 could compile. The tree now pulls icu_* 2.2, which needs
+# 1.86, so the workaround had become the thing breaking the build. Track stable, as db-api does.
+FROM rust:bookworm AS builder
 
 WORKDIR /app
 COPY . .
-RUN cargo update home --precise 0.5.9 && cargo build --release
+# Build from the committed Cargo.lock: the deployed binary should match what was tested.
+RUN cargo build --release --locked
 
 FROM debian:bookworm-slim
 
