@@ -14,7 +14,11 @@ path = "src/main.rs"
 tokio = { version = "1", features = ["full"] }
 
 # SMTP server
-mailin-embedded = { version = "=0.7.1", features = ["rtls"] }
+# 0.8 and later accept connections concurrently. In 0.7.1 the accept loop sat OUTSIDE
+# `pool.scoped(...)`, and scoped_threadpool joins on scope drop — so exactly one connection was
+# served at a time regardless of pool size, and with the crate's five-minute socket read timeout a
+# single stalled client blocked all inbound mail. Do not pin back to 0.7.
+mailin-embedded = { version = "0.8.3", features = ["rtls"] }
 
 # Database
 sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "uuid", "chrono"] }

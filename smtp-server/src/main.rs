@@ -79,9 +79,20 @@ async fn main() -> Result<()> {
 
     // Start SMTP server
     let addr = format!("{}:{}", smtp_host, smtp_port);
-    info!("Starting SMTP server on {}", addr);
+
+    // Port 25 is public and continuously scanned, so most connections are junk that connects and
+    // stalls. Each one occupies a thread until the crate's five-minute read timeout expires, and
+    // the default pool is 4 — enough for a handful of bots to starve real mail. Genuine deliveries
+    // are short, so a wide pool costs little.
+    let smtp_threads: u32 = env::var("SMTP_THREADS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(32);
+
+    info!("Starting SMTP server on {} with {} worker threads", addr, smtp_threads);
 
     let mut server = Server::new(handler);
+    server.with_num_threads(smtp_threads);
     server.with_name("near.email");
     server.with_ssl(SslConfig::None).map_err(|e| anyhow::anyhow!("SSL config error: {}", e))?;
     server.with_addr(&addr).map_err(|e| anyhow::anyhow!("Address config error: {}", e))?;
