@@ -79,7 +79,7 @@ export default function DocsPage() {
             </p>
             <p className="text-gray-700 mb-4">
               near.email is built on{' '}
-              <a href="https://outlayer.fastnear.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
+              <a href="https://outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
                 NEAR Outlayer
               </a>
               {' '}&mdash; a platform for verifiable off-chain computation with TEE attestation. This means every operation
@@ -147,7 +147,7 @@ export default function DocsPage() {
                   <strong>What this means:</strong> Even if someone gains physical access to the server, they cannot
                   read your emails or extract encryption keys. You can verify the attestation to confirm that untampered
                   code ran your request. Learn more about{' '}
-                  <a href="https://outlayer.fastnear.com/docs/tee-attestation" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  <a href="https://app.outlayer.ai/docs/tee-attestation" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     TEE attestation verification
                   </a>.
                 </p>
@@ -403,7 +403,7 @@ export default function DocsPage() {
             <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-xl">
               <p className="text-green-800 text-sm">
                 <strong>HTTPS Mode</strong> uses a Payment Key from{' '}
-                <a href="https://outlayer.fastnear.com" target="_blank" rel="noopener noreferrer" className="underline">
+                <a href="https://app.outlayer.ai" target="_blank" rel="noopener noreferrer" className="underline">
                   OutLayer Dashboard
                 </a>{' '}
                 for higher limits. It&apos;s faster and supports larger attachments while maintaining the same security guarantees.
@@ -449,7 +449,7 @@ export default function DocsPage() {
                   <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium flex-shrink-0">1</span>
                   <span>
                     Go to{' '}
-                    <a href="https://outlayer.fastnear.com/payment-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    <a href="https://app.outlayer.ai/payment-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                       OutLayer Dashboard → Payment Keys
                     </a>
                   </span>
@@ -553,7 +553,7 @@ export default function DocsPage() {
                   A Payment Key is a prepaid API key that allows you to use HTTPS mode instead of blockchain transactions.
                   Benefits: no wallet popups, larger attachment downloads (18 MB vs 1.1 MB), cheaper than gas fees.
                   Same security guarantees as blockchain mode. Create one at{' '}
-                  <a href="https://outlayer.fastnear.com/payment-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  <a href="https://app.outlayer.ai/payment-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     OutLayer Dashboard
                   </a>. Typical cost is ~$0.001 per operation.
                 </div>
@@ -566,7 +566,7 @@ export default function DocsPage() {
                 <div className="px-5 pb-4 text-gray-600 text-sm">
                   Every request returns a TEE attestation &mdash; a cryptographic proof from Intel hardware that specific code
                   ran inside a secure enclave. You can verify this attestation independently using{' '}
-                  <a href="https://outlayer.fastnear.com/docs/tee-attestation" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                  <a href="https://app.outlayer.ai/docs/tee-attestation" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     our verification guide
                   </a>. The WASI module source code is open source and the attestation proves that exact code (by hash)
                   processed your request.
@@ -575,11 +575,11 @@ export default function DocsPage() {
 
               <details className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                 <summary className="px-5 py-4 cursor-pointer font-medium text-gray-900 hover:bg-gray-50">
-                  What is NEAR Outlayer?
+                  What is OutLayer?
                 </summary>
                 <div className="px-5 pb-4 text-gray-600 text-sm">
-                  <a href="https://outlayer.fastnear.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                    NEAR Outlayer
+                  <a href="https://outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    OutLayer
                   </a>{' '}
                   is the platform that powers near.email. It provides verifiable off-chain computation with TEE attestation
                   for the NEAR ecosystem. Developers can build secure applications where users can cryptographically verify
@@ -675,7 +675,7 @@ export default function DocsPage() {
             </Link>
             <p className="text-gray-400 text-sm mt-4">
               Powered by{' '}
-              <a href="https://outlayer.fastnear.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">NEAR Outlayer</a>
+              <a href="https://outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">OutLayer</a>
             </p>
           </div>
         </main>

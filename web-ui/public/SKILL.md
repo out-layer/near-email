@@ -219,7 +219,7 @@ def send_email(to: str, subject: str, body: str) -> dict:
 
 ## Getting a Payment Key
 
-1. Go to [OutLayer Dashboard](https://outlayer.fastnear.com/dashboard)
+1. Go to [OutLayer Dashboard](https://app.outlayer.ai)
 2. Create a new Payment Key
 3. Top up balance with USDC/USDT
 4. Copy key (format: `owner:nonce:secret`)

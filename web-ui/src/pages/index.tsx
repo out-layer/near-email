@@ -601,7 +601,7 @@ export default function Home({ accounts, loading }: HomeProps) {
 
         <p className="text-xs text-gray-400 mt-6">
           Powered by{' '}
-          <a href="https://outlayer.fastnear.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">NEAR Outlayer</a>
+          <a href="https://outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">OutLayer</a>
           {' '}&bull;{' '}
           <a href="/docs" className="text-blue-500 hover:underline">Docs</a>
           {' '}&bull;{' '}
@@ -730,7 +730,7 @@ export default function Home({ accounts, loading }: HomeProps) {
 
         <p className="text-xs text-gray-400 mt-6">
           Powered by{' '}
-          <a href="https://outlayer.fastnear.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">NEAR Outlayer</a>
+          <a href="https://outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">OutLayer</a>
           {' '}&bull;{' '}
           <a href="/docs" className="text-blue-500 hover:underline">Docs</a>
           {' '}&bull;{' '}
@@ -939,7 +939,7 @@ export default function Home({ accounts, loading }: HomeProps) {
 
         <p className="text-xs text-gray-400 mt-6">
           Powered by{' '}
-          <a href="https://outlayer.fastnear.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">NEAR Outlayer</a>
+          <a href="https://outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">OutLayer</a>
           {' '}&bull;{' '}
           <a href="/docs" className="text-blue-500 hover:underline">Docs</a>
           {' '}&bull;{' '}

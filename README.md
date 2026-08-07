@@ -1,6 +1,6 @@
 # NEAR Email
 
-> **[Full documentation](https://outlayer.fastnear.com/docs/examples#near-email)** on the OutLayer dashboard.
+> **[Full documentation](https://app.outlayer.ai/docs/examples#near-email)** on the OutLayer dashboard.
 
 Blockchain-native email for NEAR accounts. Every NEAR account automatically has an email address: `alice.near` -> `alice@near.email`
 
@@ -137,7 +137,7 @@ The web UI supports two modes of operation:
 
 ### How to Use Payment Key Mode
 
-1. **Get a Payment Key** from [OutLayer Dashboard](https://outlayer.fastnear.com/dashboard):
+1. **Get a Payment Key** from [OutLayer Dashboard](https://app.outlayer.ai):
    - Create a new Payment Key
    - Top up balance with USDC/USDT
    - Copy the key (format: `owner:nonce:secret`)

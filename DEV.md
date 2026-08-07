@@ -208,7 +208,7 @@ AI agents can integrate via two methods:
 Pre-fund a payment key and make simple HTTPS calls. Best for server-side agents.
 
 **Setup:**
-1. Go to [OutLayer Dashboard](https://outlayer.fastnear.com/dashboard)
+1. Go to [OutLayer Dashboard](https://app.outlayer.ai)
 2. Create a Payment Key
 3. Top up balance with USDC/USDT
 4. Copy key (format: `owner:nonce:secret`)
@@ -632,5 +632,5 @@ NEAR Email currently supports **mainnet only**. Emails to `*.testnet` accounts a
 ## Resources
 
 - [NEAR Email Web UI](https://near.email)
-- [OutLayer Dashboard](https://outlayer.fastnear.com/dashboard)
-- [OutLayer Documentation](https://outlayer.fastnear.com/docs)
+- [OutLayer Dashboard](https://app.outlayer.ai)
+- [OutLayer Documentation](https://app.outlayer.ai/docs)

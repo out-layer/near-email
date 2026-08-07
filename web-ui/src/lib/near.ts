@@ -63,7 +63,7 @@ function encryptEcdh(recipientPubkey: Uint8Array, data: Uint8Array): Uint8Array 
 
 // Configuration
 const NETWORK_ID = process.env.NEXT_PUBLIC_NETWORK_ID || 'mainnet';
-const OUTLAYER_API_URL = process.env.NEXT_PUBLIC_OUTLAYER_API_URL || 'https://outlayer.fastnear.com';
+const OUTLAYER_API_URL = process.env.NEXT_PUBLIC_OUTLAYER_API_URL || 'https://api.outlayer.ai';
 
 // Payment Key localStorage keys
 const PAYMENT_KEY_STORAGE = 'near-email-payment-key';

@@ -499,7 +499,7 @@ export default function DevPage() {
               </div>
               <div>
                 <span className="text-blue-600 font-medium">API Base:</span>
-                <code className="ml-2 bg-blue-100 px-2 py-0.5 rounded text-blue-800">api.outlayer.fastnear.com</code>
+                <code className="ml-2 bg-blue-100 px-2 py-0.5 rounded text-blue-800">api.outlayer.ai</code>
               </div>
               <div>
                 <span className="text-blue-600 font-medium">Address space:</span>
@@ -633,7 +633,7 @@ export default function DevPage() {
                   <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-medium flex-shrink-0">1</span>
                   <span>
                     Go to{' '}
-                    <a href="https://outlayer.fastnear.com/payment-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                    <a href="https://app.outlayer.ai/payment-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                       OutLayer Dashboard &rarr; Payment Keys
                     </a>
                   </span>
@@ -818,7 +818,7 @@ export default function DevPage() {
             <h2 className="text-xl font-bold text-gray-900 mb-4">Resources</h2>
             <div className="grid md:grid-cols-2 gap-4">
               <a
-                href="https://outlayer.fastnear.com/payment-keys"
+                href="https://app.outlayer.ai/payment-keys"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
@@ -827,7 +827,7 @@ export default function DevPage() {
                 <p className="text-gray-600 text-sm">Create and manage Payment Keys</p>
               </a>
               <a
-                href="https://outlayer.fastnear.com/docs"
+                href="https://app.outlayer.ai/docs"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-white rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
@@ -867,7 +867,7 @@ export default function DevPage() {
             </Link>
             <p className="text-gray-400 text-sm mt-4">
               Powered by{' '}
-              <a href="https://outlayer.fastnear.com" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+              <a href="https://app.outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                 NEAR Outlayer
               </a>
             </p>
