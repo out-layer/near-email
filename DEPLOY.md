@@ -4,7 +4,8 @@ Step-by-step instructions for deploying near.email to production.
 
 ## Requirements
 
-- VPS with open port 25 (Hetzner, OVH, Vultr — **not** AWS/GCP/Azure)
+- VPS that accepts **inbound** port 25 (the MX listener). Outbound mail goes through an SMTP relay
+  (`SMTP_RELAY_HOST`, e.g. Resend on 587), so a provider that blocks outbound 25 is fine.
 - Domain (e.g., `near.email`)
 - Docker + Docker Compose
 - Rust toolchain (for building WASI module)
@@ -196,10 +197,15 @@ docker-compose ps
 ```
 
 Services should be running:
-- `postgres` — database
+- `postgres` — database, published on `127.0.0.1:${POSTGRES_HOST_PORT}` (default 5432)
 - `smtp-server` — SMTP on port 25
-- `db-api` — HTTP API on port 8080
-- `web-ui` — web interface on port 3000
+- `db-api` — HTTP API on `${API_PORT}` (default 8080), host network
+- `web-ui` — web interface on `127.0.0.1:${WEBUI_HOST_PORT}` (default 3000)
+
+Set `POSTGRES_HOST_PORT`, `API_PORT`, `WEBUI_HOST_PORT` in the env file when the host already
+uses the defaults. `db-api` listens on the host network, so the host firewall must admit the
+docker subnets to `API_PORT` (`ufw allow proto tcp from 172.16.0.0/12 to any port <API_PORT>`),
+otherwise `smtp-server` cannot reach it and inbound mail is dropped silently.
 
 ### 6.2 Check Logs
 

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL database
   postgres:
@@ -14,7 +12,8 @@ services:
     ports:
       # Bind to loopback only: db-api reaches it via host network,
       # smtp-server via the compose network. Never expose to the internet.
-      - "127.0.0.1:5432:5432"
+      # POSTGRES_HOST_PORT picks the host port so several stacks can share one box.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U near_email"]
       interval: 5s
@@ -34,7 +33,8 @@ services:
       SMTP_PORT: 25
       EMAIL_DOMAIN: near.email
       DEFAULT_ACCOUNT_SUFFIX: .near
-      DB_API_URL: http://172.17.0.1:8080
+      # db-api runs on the host network; 172.17.0.1 is the docker0 address of the host.
+      DB_API_URL: http://172.17.0.1:${API_PORT:-8080}
       API_SECRET: ${API_SECRET}
     ports:
       - "25:25"
@@ -52,8 +52,9 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      DATABASE_URL: postgres://near_email:${POSTGRES_PASSWORD}@localhost:5432/near_email
-      API_PORT: 8080
+      DATABASE_URL: postgres://near_email:${POSTGRES_PASSWORD}@localhost:${POSTGRES_HOST_PORT:-5432}/near_email
+      # Host-network listener; the host firewall must admit docker subnets (172.16.0.0/12) to it.
+      API_PORT: ${API_PORT:-8080}
       EMAIL_DOMAIN: near.email
       DEFAULT_ACCOUNT_SUFFIX: .near
       # DKIM signing for outgoing emails
@@ -98,8 +99,8 @@ services:
         NEXT_PUBLIC_SECRETS_ACCOUNT_ID: ${NEXT_PUBLIC_SECRETS_ACCOUNT_ID:-zavodil.near}
         NEXT_PUBLIC_USE_SECRETS: ${NEXT_PUBLIC_USE_SECRETS:-true}
     ports:
-      # Bind to loopback only: nginx terminates TLS and proxies to localhost:3000.
-      - "127.0.0.1:3000:3000"
+      # Bind to loopback only: nginx terminates TLS and proxies to this port.
+      - "127.0.0.1:${WEBUI_HOST_PORT:-3000}:3000"
 
 volumes:
   postgres_data_testnet:
