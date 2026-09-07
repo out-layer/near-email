@@ -82,7 +82,7 @@ export default function DocsPage() {
               <a href="https://outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline font-medium">
                 NEAR Outlayer
               </a>
-              {' '}&mdash; a platform for verifiable off-chain computation with TEE attestation. This means every operation
+              {' '}&mdash; a platform for verifiable compute and custody with TEE attestation. This means every operation
               is cryptographically proven to run correct code inside a hardware-protected environment.
             </p>
           </section>
@@ -581,7 +581,7 @@ export default function DocsPage() {
                   <a href="https://outlayer.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     OutLayer
                   </a>{' '}
-                  is the platform that powers near.email. It provides verifiable off-chain computation with TEE attestation
+                  is the platform that powers near.email. It provides verifiable compute and custody with TEE attestation
                   for the NEAR ecosystem. Developers can build secure applications where users can cryptographically verify
                   what code ran on their data.
                 </div>

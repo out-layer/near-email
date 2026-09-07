@@ -1,0 +1,32 @@
+{
+  "connector_id": "near-email",
+  "display": {
+    "name": "near.email",
+    "author": "outlayer.near"
+  },
+  "operations": [
+    "send",
+    "send_with_attachment",
+    "list",
+    "read"
+  ],
+  "capabilities": {
+    "network": [
+      "mail.near.email"
+    ]
+  },
+  "limits": [
+    {
+      "operation": "send:external",
+      "window": "day",
+      "max_count": 3,
+      "applies": "covered"
+    },
+    {
+      "operation": "send_with_attachment:external",
+      "window": "day",
+      "max_count": 3,
+      "applies": "covered"
+    }
+  ]
+}

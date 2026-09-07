@@ -1187,7 +1187,7 @@ export default function Home({ accounts, loading }: HomeProps) {
                     NEAR Email GitHub
                   </a>
                   <a
-                    href="https://github.com/fastnear/near-outlayer"
+                    href="https://github.com/out-layer/outlayer"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
