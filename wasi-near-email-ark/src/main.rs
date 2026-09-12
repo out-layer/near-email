@@ -20,32 +20,10 @@ use outlayer::{env, storage};
 use serde::{Deserialize, Serialize};
 use types::*;
 
-// ==================== Connector manifest ====================
-
-/// The connector manifest, embedded in a wasm custom section so it is covered
-/// by the wasm hash the contract records for this version.
-///
-/// This is what declares the outbound allowlist the TEE worker enforces: this
-/// module may reach `mail.near.email` and nothing else. Keeping it inside the
-/// binary — rather than in a file at a git ref, or in a coordinator database —
-/// means nobody can widen it after publishing without changing the hash, and
-/// changing the hash means a new version the user has to move to.
-///
-/// `#[used]` keeps the linker from dropping a static that nothing references.
-/// See `wasi-examples/CONNECTOR_MANIFEST.md`.
-#[used]
-#[link_section = "outlayer.manifest"]
-static OUTLAYER_MANIFEST: [u8; include_bytes!("../manifest.json").len()] =
-    *include_bytes!("../manifest.json");
-
 // ==================== Hardcoded Config ====================
 // These values are constant and don't need to be in secrets
 
-/// Database API URL (internal service).
-///
-/// Must stay in step with `capabilities.network` in `manifest.json`: the worker
-/// refuses any host not listed there, so a change here without a change there
-/// produces a connector that cannot reach its own backend.
+/// Database API URL (internal service)
 const DATABASE_API_URL: &str = "https://mail.near.email";
 
 /// Email signature template (use %account% for sender's NEAR account)

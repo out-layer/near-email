@@ -27,21 +27,6 @@ SIZE_KB=$(echo "scale=0; $SIZE / 1024" | bc)
 echo "WASM module: $WASM_FILE"
 echo "Size: ${SIZE_KB} KB (${SIZE_MB} MB)"
 
-# The connector manifest must be present in the artefact.
-#
-# It declares the outbound allowlist the TEE worker enforces, and it is covered
-# by the SHA256 below — which is the whole reason it lives inside the wasm
-# rather than in a file next to it. If the linker dropped the static (a missing
-# `#[used]`, say), this module would publish with NO allowlist and, being a
-# connector, would be refused all outbound network at runtime. Loud here beats
-# discovering it in production.
-if ! grep -qa 'outlayer.manifest' "$WASM_FILE"; then
-    echo ""
-    echo "ERROR: outlayer.manifest custom section is missing from $WASM_FILE"
-    echo "See wasi-examples/CONNECTOR_MANIFEST.md"
-    exit 1
-fi
-echo "Manifest section: present"
 
 # Show SHA256 hash (for FastFS/contract)
 HASH=$(shasum -a 256 "$WASM_FILE" | cut -d' ' -f1)
