@@ -142,9 +142,16 @@ Output: `target/wasm32-wasip2/release/wasi-near-email-ark.wasm`
 
 ### 5.1 Create Project in OutLayer
 
-The WASI module lives in the `wasi-near-email-ark/` subdirectory, and `CodeSource::GitHub`
-has no notion of a subdirectory — it builds a repository root. So the module is built locally
-(Step 4) and the resulting wasm is registered as a project version by URL and hash:
+The module built in Step 4 is published and registered as a project version by URL and hash.
+The CLI does it in two commands:
+
+```bash
+outlayer upload target/wasm32-wasip2/release/wasi-near-email-ark.wasm
+# prints SHA256 and: FastFS URL: https://main.fastfs.io/your.near/outlayer.near/<sha256>.wasm
+outlayer deploy near-email <FastFS URL>
+```
+
+The same through the contract directly:
 
 ```bash
 # Project name only — the contract prefixes it with your account:
@@ -399,7 +406,8 @@ docker-compose up -d
 # For WASI module — rebuild and redeploy
 cd wasi-near-email-ark
 ./build.sh
-# Update in OutLayer
+outlayer upload target/wasm32-wasip2/release/wasi-near-email-ark.wasm
+outlayer deploy near-email <FastFS URL printed by upload>
 ```
 
 ## Backup
