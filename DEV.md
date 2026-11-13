@@ -356,6 +356,8 @@ For reading emails, you need ECDH encryption. See the [examples.md](../../skills
 
 Sign transactions directly with NEAR wallet. Attach deposit as a limit for computation costs - unused portion is automatically refunded. This is how [near.email](https://near.email) works.
 
+The examples attach 0.025 NEAR, which covers the compute of a small request. An answer of 1 KB or more (an inbox page, an attachment download) and an `input_data` above 32 KB (an email with attachments) are held in the OutLayer contract's state while the request runs, at 0.00001 NEAR per byte of the answer and of the input above 32 KB, returned with the rest: attach `estimate_execution_cost(resource_limits, input_len, output_len)` from `outlayer.near`, with `output_len` the largest answer you allow (`max_output_size` plus ~4 KB). An answer the deposit cannot hold fails the request with `output_storage_unpaid:` and the amount to attach.
+
 **CRITICAL: NEAR Transaction results are in the `outlayer.near` receipt's `SuccessValue` (base64-encoded JSON). Find the receipt where `executor_id === 'outlayer.near'`. The result is `{ "success": true, ... }` - NO `output` wrapper. Use `parseTransactionResult()` to extract it.**
 
 **JavaScript Example (with near-api-js):**
@@ -613,8 +615,8 @@ This allows anyone to compute a user's public key for encryption, but only the T
 | Parameter | Transaction Mode | Payment Key Mode |
 |-----------|-----------------|------------------|
 | Max response size | 1.5 MB | 25 MB |
-| Max file per attachment | 5 MB | 5 MB |
-| Max total email size | 7 MB | 7 MB |
+| Max file per attachment | 0.8 MB | 5 MB |
+| Max total email size | 0.8 MB (one transaction: 1.5 MiB, base64 and encryption ~x1.8) | 7 MB |
 | Max attachments per email | 10 | 10 |
 
 ---

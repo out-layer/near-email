@@ -78,18 +78,22 @@ const POLL_TOKEN_STORAGE = 'near-email-poll-token';
 // Max output size limits (in bytes)
 // Transaction mode limited by blockchain (~1.5MB safe)
 // HTTPS mode can handle much more (25MB reasonable for browser/memory)
-const MAX_OUTPUT_SIZE_TRANSACTION = 1_500_000;  // 1.5 MB
+// Inbox, send and delete answers in Blockchain mode, in pages: every byte of the answer is held in
+// the OutLayer contract while the request runs, at 0.00001 NEAR per byte of deposit (returned), so
+// a 30 000-byte page holds about 0.35 NEAR. Attachment downloads are sized from the attachment.
+const MAX_OUTPUT_SIZE_TRANSACTION = 30_000;
 const MAX_OUTPUT_SIZE_HTTPS = 25_000_000;       // 25 MB
 
 // ===== SIZE LIMITS FOR UI =====
-// Sending limits - both modes now have similar limits after LARGE_PAYLOAD_PLAN implementation
-// (input_data stored in contract, not in event logs)
+// Sending limits
 // - HTTPS: HTTP body limit = 10 MB, minus JSON/encryption overhead + base64
-// - Blockchain: NEAR RPC json_payload_max_size = 10 MB, minus overhead + base64
+// - Blockchain: the email travels as the transaction's input_data, and a NEAR transaction is at
+//   most 1.5 MiB (the OutLayer contract refuses more). Attachments are base64 inside the payload,
+//   which is encrypted and base64-encoded again (about x1.8), so about 0.8 MB of attachments fit.
 const MAX_SEND_FILE_SIZE_HTTPS = 5 * 1024 * 1024;       // 5 MB per file
 const MAX_SEND_TOTAL_SIZE_HTTPS = 7 * 1024 * 1024;      // 7 MB total
-const MAX_SEND_FILE_SIZE_BLOCKCHAIN = 5 * 1024 * 1024;  // 5 MB per file (same as HTTPS now)
-const MAX_SEND_TOTAL_SIZE_BLOCKCHAIN = 7 * 1024 * 1024; // 7 MB total (RPC limit 10MB, minus overhead + base64)
+const MAX_SEND_FILE_SIZE_BLOCKCHAIN = 800 * 1024;       // 0.8 MB per file
+const MAX_SEND_TOTAL_SIZE_BLOCKCHAIN = 800 * 1024;      // 0.8 MB total
 
 // Download limits (max_output_size with ~33% base64 overhead accounted)
 export const MAX_DOWNLOAD_SIZE_TRANSACTION = 1_100_000; // ~1.1 MB raw (1.5 MB / 1.33)
@@ -375,6 +379,7 @@ export async function initWalletSelector(): Promise<WalletSelector> {
       setupNearMobileWallet(),
     ],
   });
+  void refreshComputeEstimate();
 
   // Note: We intentionally omit contractId to prevent wallets from creating
   // a function call access key during sign-in (saves gas). The app works
@@ -591,9 +596,56 @@ async function callOutLayerHttps(action: string, params: Record<string, any>): P
   return output;
 }
 
+// Resource limits of every Blockchain-mode request.
+const RESOURCE_LIMITS = {
+  max_instructions: 2000000000, // 2B - needed for large attachments decryption
+  max_memory_mb: 512,          // 512MB - needed for large attachments
+  max_execution_seconds: 120,  // 2 min for large data
+};
+
+// The OutLayer contract holds a request's input and output in its state while it runs, and asks
+// for 0.00001 NEAR per byte to hold them: the input above 32 KB, the answer every byte (an answer
+// under 1 KB travels without being stored). A guard against spam: it is a deposit, returned with
+// whatever the run does not use when the request completes.
+const FREE_INPUT_BYTES = 32 * 1024;
+const STORAGE_YOCTO_PER_BYTE = BigInt('10000000000000000000');
+// Until the contract's own estimate has been read: the deposit near.email always attached.
+const FALLBACK_COMPUTE_DEPOSIT = BigInt('25000000000000000000000'); // 0.025 NEAR
+let computeEstimate: bigint | null = null;
+
+// Read the compute estimate for RESOURCE_LIMITS ahead of time, so a request never waits on the
+// network between the user's click and the wallet.
+export async function refreshComputeEstimate(): Promise<void> {
+  try {
+    const value = await viewMethod({
+      contractId: OUTLAYER_CONTRACT,
+      method: 'estimate_execution_cost',
+      args: { resource_limits: RESOURCE_LIMITS },
+    });
+    computeEstimate = BigInt(value as string);
+  } catch (e) {
+    console.warn('Could not read the OutLayer compute estimate; using the fallback deposit', e);
+  }
+}
+
+// What to attach for a request with `inputLen` bytes of input and up to `outputLen` bytes of
+// answer: the compute estimate with a 10% margin for a price change, plus the storage deposit.
+export function requestDeposit(inputLen: number, outputLen: number): bigint {
+  const compute = computeEstimate !== null ? (computeEstimate * BigInt(11)) / BigInt(10) : FALLBACK_COMPUTE_DEPOSIT;
+  const inputHeld = BigInt(Math.max(0, inputLen - FREE_INPUT_BYTES));
+  const outputHeld = BigInt(Math.max(0, outputLen));
+  return compute + (inputHeld + outputHeld) * STORAGE_YOCTO_PER_BYTE;
+}
+
 // Call OutLayer via NEAR transaction
 // The signer is authenticated via the blockchain transaction (env::signer_account_id() in WASI)
-export async function callOutLayer(action: string, params: Record<string, any>): Promise<any> {
+// `expectedOutputLen`: the largest answer this call may get, in bytes, when `params` carries no
+// `max_output_size` (an attachment download). It sizes the deposit only; the module never sees it.
+export async function callOutLayer(
+  action: string,
+  params: Record<string, any>,
+  expectedOutputLen?: number,
+): Promise<any> {
   // Route to HTTPS API if payment key mode is enabled
   if (isPaymentKeyMode()) {
     return callOutLayerHttps(action, params);
@@ -617,6 +669,8 @@ export async function callOutLayer(action: string, params: Record<string, any>):
 
   console.log('📤 OutLayer input_data:', inputData);
 
+  const resourceLimits = RESOURCE_LIMITS;
+
   // Build request_execution call
   const requestArgs: Record<string, any> = {
     source: {
@@ -626,13 +680,16 @@ export async function callOutLayer(action: string, params: Record<string, any>):
       },
     },
     input_data: inputData,
-    resource_limits: {
-      max_instructions: 2000000000, // 2B - needed for large attachments decryption
-      max_memory_mb: 512,          // 512MB - needed for large attachments
-      max_execution_seconds: 120,  // 2 min for large data
-    },
+    resource_limits: resourceLimits,
     response_format: 'Json',
   };
+
+  // Nothing is awaited between here and the wallet: the wallet must open inside the user's click.
+  const inputLen = new TextEncoder().encode(inputData).length;
+  const outputLen = typeof params.max_output_size === 'number'
+    ? params.max_output_size + 4096
+    : expectedOutputLen ?? 0;
+  const deposit = requestDeposit(inputLen, outputLen);
 
   // Add secrets_ref if configured and enabled
   if (USE_SECRETS && SECRETS_ACCOUNT_ID) {
@@ -647,8 +704,7 @@ export async function callOutLayer(action: string, params: Record<string, any>):
     'request_execution',
     requestArgs,
     BigInt('300000000000000'), // 300 TGas
-    BigInt('25000000000000000000000') // 0.025 NEAR deposit    
-    
+    BigInt(deposit) // returned, less the run's cost, when the request completes
   );
 
   // Send transaction
@@ -991,7 +1047,9 @@ export interface GetAttachmentResult {
   data: string; // base64-encoded attachment content
 }
 
-export async function getAttachment(attachmentId: string): Promise<GetAttachmentResult> {
+// `size`: the attachment's size from the email, which sizes the Blockchain-mode deposit (the
+// answer is the attachment encrypted and base64-encoded, about 4/3 of it).
+export async function getAttachment(attachmentId: string, size = 0): Promise<GetAttachmentResult> {
   // Generate ephemeral key for response decryption
   cachedEphemeralKey = new PrivateKey();
   const ephemeralPubkeyHex = cachedEphemeralKey.publicKey.toHex();
@@ -999,7 +1057,7 @@ export async function getAttachment(attachmentId: string): Promise<GetAttachment
   const result = await callOutLayer('get_attachment', {
     attachment_id: attachmentId,
     ephemeral_pubkey: ephemeralPubkeyHex,
-  });
+  }, Math.ceil((size * 4) / 3) + 4096);
 
   // Decrypt the attachment data
   const encryptedBytes = Uint8Array.from(atob(result.encrypted_data), c => c.charCodeAt(0));

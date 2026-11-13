@@ -49,12 +49,12 @@ export default function LimitsModal({ isOpen, onClose, isHttpsMode }: LimitsModa
             <tbody className="divide-y divide-gray-100">
               <tr className={!isHttpsMode ? 'bg-blue-50/30' : 'bg-green-50/30'}>
                 <td className="py-2.5 px-3 text-gray-700">Send: per file</td>
-                <td className="text-center py-2.5 px-3 text-gray-600">5 MB</td>
+                <td className="text-center py-2.5 px-3 text-gray-600">0.8 MB</td>
                 <td className="text-center py-2.5 px-3 text-gray-600">5 MB</td>
               </tr>
               <tr className={!isHttpsMode ? 'bg-blue-50/30' : 'bg-green-50/30'}>
                 <td className="py-2.5 px-3 text-gray-700">Send: total (body + attachments)</td>
-                <td className="text-center py-2.5 px-3 text-gray-600">7 MB</td>
+                <td className="text-center py-2.5 px-3 text-gray-600">0.8 MB</td>
                 <td className="text-center py-2.5 px-3 text-gray-600">7 MB</td>
               </tr>
               <tr className={!isHttpsMode ? 'bg-blue-50/30' : 'bg-green-50/30'}>
@@ -71,6 +71,19 @@ export default function LimitsModal({ isOpen, onClose, isHttpsMode }: LimitsModa
           </table>
         </div>
 
+        {/* Deposit in Blockchain mode */}
+        {!isHttpsMode && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
+            <strong>Deposit.</strong> In Blockchain mode every action attaches NEAR from your wallet.
+            While the request runs, the answer you receive (and an email above 32 KB you send) is kept
+            in the OutLayer contract&apos;s state, and the contract holds 0.00001 NEAR per byte for that
+            storage &mdash; about 0.35 NEAR for a page of the inbox, about 10 NEAR per MB of an
+            attachment, a guard against spam. It is a deposit, not a fee: everything except the small
+            cost of the run comes back to your wallet when the request completes. Payment Key mode
+            needs no deposit.
+          </div>
+        )}
+
         {/* Upgrade hint */}
         {!isHttpsMode && (
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
@@ -79,7 +92,7 @@ export default function LimitsModal({ isOpen, onClose, isHttpsMode }: LimitsModa
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div className="text-sm text-yellow-800">
-                <strong>Tip:</strong> Connect with a Payment Key to download larger attachments (18 MB vs 1.1 MB) and avoid wallet popups.
+                <strong>Tip:</strong> Connect with a Payment Key to send and download larger attachments (7 MB vs 0.8 MB to send, 18 MB vs 1.1 MB to download), skip the deposit and avoid wallet popups.
               </div>
             </div>
           </div>

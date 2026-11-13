@@ -245,7 +245,7 @@ fn process() -> Result<Response, Box<dyn std::error::Error>> {
         Request::SendEmail {
             encrypted_data,
             ephemeral_pubkey,
-            max_output_size: _, // Not used - we return empty EmailData, frontend refreshes separately
+            max_output_size,
             need_poll_token,
         } => {
             use base64::{engine::general_purpose::STANDARD, Engine};
@@ -393,9 +393,10 @@ fn process() -> Result<Response, Box<dyn std::error::Error>> {
             // Otherwise return simple status without inbox/sent
             let encrypted_data = match ephemeral_pubkey_bytes {
                 Some(epk_bytes) => {
-                    // Fetch all emails (inbox + sent) with lazy loading
-                    // Now that sent emails use lazy attachments, response should be within size limit
-                    let max_size = DEFAULT_MAX_OUTPUT_SIZE;
+                    // Fetch all emails (inbox + sent) with lazy loading, within the size the caller
+                    // asked for: in Blockchain mode the response is held in the OutLayer contract,
+                    // and above 32 KB the caller's deposit must cover it.
+                    let max_size = max_output_size.unwrap_or(DEFAULT_MAX_OUTPUT_SIZE);
                     let mut result = fetch_request_email(
                         db_api_url,
                         &account_id,

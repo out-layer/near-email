@@ -70,7 +70,7 @@ export default function EmailView({ email, onDelete, onReply }: EmailViewProps) 
     setLoadingAttachments(prev => new Set(prev).add(att.attachment_id!));
 
     try {
-      const result = await getAttachment(att.attachment_id);
+      const result = await getAttachment(att.attachment_id, att.size);
 
       // Decode and download
       const binary = atob(result.data);

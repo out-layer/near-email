@@ -125,8 +125,14 @@ The web UI supports two modes of operation:
 ### Transaction Mode (Default)
 - Each operation sends a NEAR blockchain transaction
 - Authenticated via wallet signature
-- ~0.1 NEAR deposit per operation
-- Limited to ~1.5 MB response size
+- A NEAR deposit per operation, returned less the run's cost when it completes: the compute
+  estimate (about 0.015 NEAR), plus 0.00001 NEAR per byte of the answer received (when it is
+  1 KB or more) and of the email sent above 32 KB. The OutLayer contract holds those bytes in its
+  state while the request runs, and the deposit guards it against spam. Inbox, send and delete
+  answers come in pages of up to 30 000 bytes (about 0.35 NEAR held); an attachment download holds
+  about 10 NEAR per MB of attachment until it completes
+- Limited to ~1.5 MB response size and ~0.8 MB of attachments to send (one transaction carries
+  at most 1.5 MiB)
 
 ### Payment Key Mode
 - Operations via HTTPS API (no blockchain transactions)
