@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { chacha20poly1305 } from '@noble/ciphers/chacha';
 import { randomBytes } from '@noble/ciphers/webcrypto';
+import { x25519 } from '@noble/curves/ed25519';
+import { hkdf } from '@noble/hashes/hkdf';
+import { sha256 } from '@noble/hashes/sha256';
 import { sendTransaction, getOutlayerContractId, viewMethod } from '@/lib/near';
 
 interface KeyCreationFlowModalProps {
@@ -30,18 +33,29 @@ function hexToBytes(hex: string): Uint8Array {
   return bytes;
 }
 
-// Encrypt with ChaCha20-Poly1305 using keystore pubkey (symmetric key)
-// Format: nonce (12 bytes) || ciphertext + tag
-function encryptWithPubkey(pubkeyHex: string, plaintext: string): Uint8Array {
-  const key = hexToBytes(pubkeyHex);
-  const plaintextBytes = new TextEncoder().encode(plaintext);
+// Seal to the keystore's X25519 public key, as the keystore opens it: ECIES
+// with an ephemeral X25519 pair, HKDF-SHA256 over the shared secret and
+// ChaCha20-Poly1305. Only the keystore, which holds the secret half, reads it.
+// Format: 0x01 || ephemeral public key (32) || nonce (12) || ciphertext + tag
+const KEYSTORE_HKDF_INFO = new TextEncoder().encode('outlayer-keystore-v1');
+
+function sealToKeystore(pubkeyHex: string, plaintext: string): Uint8Array {
+  const recipient = hexToBytes(pubkeyHex);
+  if (recipient.length !== 32) {
+    throw new Error(`The keystore's public key is ${recipient.length} bytes, not 32`);
+  }
+  const ephemeralSecret = x25519.utils.randomPrivateKey();
+  const ephemeralPublic = x25519.getPublicKey(ephemeralSecret);
+  const shared = x25519.getSharedSecret(ephemeralSecret, recipient);
+  const key = hkdf(sha256, shared, undefined, KEYSTORE_HKDF_INFO, 32);
   const nonce = randomBytes(12);
-  const cipher = chacha20poly1305(key, nonce);
-  const ciphertextWithTag = cipher.encrypt(plaintextBytes);
-  const encrypted = new Uint8Array(12 + ciphertextWithTag.length);
-  encrypted.set(nonce, 0);
-  encrypted.set(ciphertextWithTag, 12);
-  return encrypted;
+  const ciphertextWithTag = chacha20poly1305(key, nonce).encrypt(new TextEncoder().encode(plaintext));
+  const sealed = new Uint8Array(1 + 32 + 12 + ciphertextWithTag.length);
+  sealed[0] = 0x01;
+  sealed.set(ephemeralPublic, 1);
+  sealed.set(nonce, 33);
+  sealed.set(ciphertextWithTag, 45);
+  return sealed;
 }
 
 // Fetch encryption pubkey from coordinator keystore
@@ -127,8 +141,7 @@ export default function KeyCreationFlowModal({
       };
       const secretJson = JSON.stringify(secretData);
 
-      // Encrypt with ChaCha20-Poly1305 using keystore pubkey
-      const encryptedArray = encryptWithPubkey(pubkey, secretJson);
+      const encryptedArray = sealToKeystore(pubkey, secretJson);
       const encryptedBase64 = btoa(String.fromCharCode(...Array.from(encryptedArray)));
 
       // Save to localStorage in case of page reload during transaction
